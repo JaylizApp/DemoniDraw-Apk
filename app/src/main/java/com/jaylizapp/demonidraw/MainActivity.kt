@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -151,7 +152,7 @@ fun MainScreen(
     val scope = rememberCoroutineScope()
     val gestures by viewModel.gestures.collectAsState()
     val context = LocalContext.current
-    
+
     var showAddDialog by remember { mutableStateOf(false) }
     var gestureToEdit by remember { mutableStateOf<GestureEntry?>(null) }
 
@@ -216,6 +217,7 @@ fun MainScreen(
                     .padding(innerPadding)
                     .fillMaxSize()
             ) {
+                Spacer(modifier = Modifier.height(16.dp))
                 // --- BOTONES PRINCIPALES ---
                 DemoniButton(
                     text = if (isEnglish) "Start Floating Button" else "Iniciar Botón Flotante",
@@ -250,8 +252,7 @@ fun MainScreen(
                     }
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
-                FadingSeparator()
+                Spacer(modifier = Modifier.height(8.dp))
 
                 GestureList(
                     gestures = gestures,
@@ -301,7 +302,7 @@ fun DemoniButton(text: String, onClick: () -> Unit, isSecondary: Boolean = false
         modifier = Modifier
             .fillMaxWidth()
             .height(52.dp)
-            .padding(horizontal = 12.dp, vertical = 4.dp)
+            .padding(horizontal = 12.dp, vertical = 8.dp)
             .shadow(
                 elevation = 16.dp, 
                 shape = RoundedCornerShape(12.dp),
@@ -356,7 +357,7 @@ fun DrawerContent(isDarkMode: Boolean, isEnglish: Boolean, onLanguageToggle: () 
         Spacer(modifier = Modifier.height(16.dp))
         DrawerItem(label = if (isEnglish) "Export" else "Exportar", icon = Icons.Default.Download, contentColor = contentColor)
         Spacer(modifier = Modifier.height(16.dp))
-        DrawerItem(label = if (isEnglish) "Help" else "Ayuda", icon = Icons.Default.Help, contentColor = contentColor)
+        DrawerItem(label = if (isEnglish) "Help" else "Ayuda", icon = Icons.AutoMirrored.Filled.Help, contentColor = contentColor)
         
         Spacer(modifier = Modifier.weight(1f))
         
