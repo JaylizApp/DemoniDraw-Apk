@@ -10,6 +10,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.json.JSONArray
+import org.json.JSONObject
 
 class GestureViewModel(application: Application) : AndroidViewModel(application) {
     private val db = AppDatabase.getDatabase(application)
@@ -35,6 +37,39 @@ class GestureViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             gestureManager.removeAllGestures(gesture.name)
             dao.deleteGesture(gesture)
+        }
+    }
+
+    fun exportGesturesToJson(): String {
+        val array = JSONArray()
+        gestures.value.forEach { gesture ->
+            val obj = JSONObject().apply {
+                put("name", gesture.name)
+                put("action", gesture.action)
+                put("isShell", gesture.isShellCommand)
+            }
+            array.put(obj)
+        }
+        return array.toString(4)
+    }
+
+    fun importGesturesFromJson(jsonString: String) {
+        viewModelScope.launch {
+            try {
+                val array = JSONArray(jsonString)
+                for (i in 0 until array.length()) {
+                    val obj = array.getJSONObject(i)
+                    val name = obj.getString("name")
+                    val action = obj.getString("action")
+                    val isShell = obj.getBoolean("isShell")
+                    
+                    // Solo insertamos si no existe ya uno con el mismo nombre para evitar duplicados
+                    // O podemos simplemente insertar, Room se encarga si tenemos conflictos definidos
+                    dao.insertGesture(GestureEntry(name = name, action = action, isShellCommand = isShell))
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 }

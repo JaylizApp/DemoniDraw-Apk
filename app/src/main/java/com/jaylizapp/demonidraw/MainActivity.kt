@@ -2,12 +2,17 @@ package com.jaylizapp.demonidraw
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Environment
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -15,13 +20,16 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -47,6 +55,7 @@ import com.jaylizapp.demonidraw.util.ShellUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 
 class MainActivity : ComponentActivity() {
     private val viewModel: GestureViewModel by viewModels()
@@ -56,12 +65,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         
         setContent {
-            var isDarkMode by remember { mutableStateOf(true) }
-            var isEnglish by remember { mutableStateOf(false) }
+            var isDarkMode by rememberSaveable { mutableStateOf(true) }
+            var isEnglish by rememberSaveable { mutableStateOf(false) }
             
             DemonidrawTheme(darkTheme = isDarkMode) {
-                // Modo Luz: Fondo plateado suave para que resalte el amarillo
-                val backgroundColor = if (isDarkMode) AbyssBlack else Color(0xFFD1D5D8) // ShinySilver-ish
+                val backgroundColor = if (isDarkMode) AbyssBlack else Color(0xFFD1D5D8)
                 Surface(color = backgroundColor) {
                     MainScreen(
                         viewModel, 
@@ -86,9 +94,9 @@ fun FadingSeparator() {
                 brush = Brush.horizontalGradient(
                     colors = listOf(
                         Color.Transparent,
-                        Color(0xFFC0C0C0), // Plata
-                        Color.White,       // Brillo central
-                        Color(0xFFC0C0C0), // Plata
+                        Color(0xFFC0C0C0),
+                        Color.White,
+                        Color(0xFFC0C0C0),
                         Color.Transparent
                     )
                 )
@@ -97,7 +105,12 @@ fun FadingSeparator() {
 }
 
 @Composable
-fun StyledTitle(showEmoji: Boolean = true, fontSize: Int = 24, isCentered: Boolean = false) {
+fun StyledTitle(
+    showEmoji: Boolean = true, 
+    fontSize: Int = 28, 
+    isCentered: Boolean = false,
+    modifier: Modifier = Modifier
+) {
     val titleShadow = Shadow(
         color = Color.Black.copy(alpha = 0.8f),
         offset = Offset(6f, 6f),
@@ -106,7 +119,7 @@ fun StyledTitle(showEmoji: Boolean = true, fontSize: Int = 24, isCentered: Boole
 
     val styledTitle = buildAnnotatedString {
         withStyle(style = SpanStyle(
-            color = MaterialTheme.colorScheme.primary,
+            color = HellRed,
             fontWeight = FontWeight.ExtraBold,
             shadow = titleShadow
         )) {
@@ -133,9 +146,12 @@ fun StyledTitle(showEmoji: Boolean = true, fontSize: Int = 24, isCentered: Boole
 
     Text(
         text = styledTitle,
-        style = MaterialTheme.typography.headlineMedium.copy(fontSize = fontSize.sp),
+        style = MaterialTheme.typography.headlineMedium.copy(
+            fontSize = fontSize.sp,
+            fontWeight = FontWeight.ExtraBold
+        ),
         textAlign = if (isCentered) TextAlign.Center else TextAlign.Start,
-        modifier = if (isCentered) Modifier.fillMaxWidth() else Modifier
+        modifier = modifier.then(if (isCentered) Modifier.fillMaxWidth() else Modifier)
     )
 }
 
@@ -155,18 +171,63 @@ fun MainScreen(
 
     var showAddDialog by remember { mutableStateOf(false) }
     var gestureToEdit by remember { mutableStateOf<GestureEntry?>(null) }
+    var showStorageDialog by remember { mutableStateOf(false) }
 
     val backgroundColor = if (isDarkMode) AbyssBlack else Color(0xFFD1D5D8)
     val contentColor = if (isDarkMode) Color.White else AbyssBlack
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        uri?.let {
+            val json = viewModel.exportGesturesToJson()
+            context.contentResolver.openOutputStream(it)?.use { outputStream ->
+                outputStream.write(json.toByteArray())
+            }
+            Toast.makeText(context, if (isEnglish) "Export successful!" else "¡Exportación exitosa!", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            context.contentResolver.openInputStream(it)?.bufferedReader()?.use { reader ->
+                val json = reader.readText()
+                viewModel.importGesturesFromJson(json)
+            }
+            Toast.makeText(context, if (isEnglish) "Import successful!" else "¡Importación exitosa!", Toast.LENGTH_SHORT).show()
+        }
+    }
 
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
             ModalDrawerSheet(
                 drawerContainerColor = backgroundColor,
-                modifier = Modifier.width(300.dp) 
+                drawerShape = RoundedCornerShape(topEnd = 24.dp, bottomEnd = 24.dp),
+                modifier = Modifier
+                    .width(300.dp)
+                    .statusBarsPadding() // Empieza debajo de la barra de estado
             ) {
-                DrawerContent(isDarkMode, isEnglish, onLanguageToggle)
+                DrawerContent(
+                    isDarkMode = isDarkMode, 
+                    isEnglish = isEnglish, 
+                    onLanguageToggle = onLanguageToggle,
+                    onStorageClick = {
+                        showStorageDialog = true
+                        scope.launch { drawerState.close() }
+                    },
+                    onImportClick = {
+                        importLauncher.launch("application/json")
+                        scope.launch { drawerState.close() }
+                    },
+                    onExportClick = {
+                        val timestamp = System.currentTimeMillis()
+                        exportLauncher.launch("DemoniDraw_Backup_$timestamp.json")
+                        scope.launch { drawerState.close() }
+                    }
+                )
             }
         }
     ) {
@@ -175,7 +236,7 @@ fun MainScreen(
             topBar = {
                 Column {
                     TopAppBar(
-                        title = { StyledTitle(fontSize = 28) },
+                        title = { StyledTitle() },
                         navigationIcon = {
                             IconButton(onClick = { scope.launch { drawerState.open() } }) {
                                 Icon(Icons.Default.Menu, contentDescription = "Menu", tint = contentColor)
@@ -183,15 +244,19 @@ fun MainScreen(
                         },
                         colors = TopAppBarDefaults.topAppBarColors(
                             containerColor = backgroundColor,
-                            titleContentColor = contentColor
+                            titleContentColor = contentColor,
+                            navigationIconContentColor = contentColor,
+                            actionIconContentColor = contentColor
                         ),
                         actions = {
                             IconButton(onClick = onThemeToggle) {
-                                Icon(
-                                    Icons.Default.Nightlight,
-                                    contentDescription = "Toggle Theme",
-                                    tint = contentColor
-                                )
+                                Crossfade(targetState = isDarkMode, animationSpec = tween(500)) { dark ->
+                                    Icon(
+                                        if (dark) Icons.Default.DarkMode else Icons.Default.NightsStay,
+                                        contentDescription = "Toggle Theme",
+                                        tint = contentColor
+                                    )
+                                }
                             }
                         }
                     )
@@ -218,7 +283,6 @@ fun MainScreen(
                     .fillMaxSize()
             ) {
                 Spacer(modifier = Modifier.height(16.dp))
-                // --- BOTONES PRINCIPALES ---
                 DemoniButton(
                     text = if (isEnglish) "Start Floating Button" else "Iniciar Botón Flotante",
                     onClick = {
@@ -288,6 +352,14 @@ fun MainScreen(
                     isDarkMode = isDarkMode
                 )
             }
+
+            if (showStorageDialog) {
+                StorageDialog(
+                    onDismiss = { showStorageDialog = false },
+                    isEnglish = isEnglish,
+                    viewModel = viewModel
+                )
+            }
         }
     }
 }
@@ -333,31 +405,45 @@ fun DemoniButton(text: String, onClick: () -> Unit, isSecondary: Boolean = false
 }
 
 @Composable
-fun DrawerContent(isDarkMode: Boolean, isEnglish: Boolean, onLanguageToggle: () -> Unit) {
-    val contentColor = if (isDarkMode) Color.White else AbyssBlack
+fun DrawerContent(
+    isDarkMode: Boolean, 
+    isEnglish: Boolean, 
+    onLanguageToggle: () -> Unit, 
+    onStorageClick: () -> Unit,
+    onImportClick: () -> Unit,
+    onExportClick: () -> Unit
+) {
+    val scrollState = rememberScrollState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(24.dp)
+            .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(32.dp))
-        StyledTitle(fontSize = 26, isCentered = true)
+        StyledTitle(
+            fontSize = 28, 
+            isCentered = true, 
+            modifier = Modifier.padding(vertical = 32.dp)
+        )
         
         HorizontalDivider(
-            modifier = Modifier.padding(vertical = 32.dp),
+            modifier = Modifier.padding(bottom = 32.dp),
             color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
         )
         
-        DrawerItem(label = if (isEnglish) "Settings" else "Ajustes", icon = Icons.Default.Settings, contentColor = contentColor)
+        DrawerItem(label = if (isEnglish) "Settings" else "Ajustes", icon = Icons.Default.Settings)
         Spacer(modifier = Modifier.height(16.dp))
-        DrawerItem(label = if (isEnglish) "Languages" else "Idiomas", icon = Icons.Default.Language, contentColor = contentColor, onClick = onLanguageToggle)
+        DrawerItem(label = if (isEnglish) "Languages" else "Idiomas", icon = Icons.Default.Language, onClick = onLanguageToggle)
         Spacer(modifier = Modifier.height(16.dp))
-        DrawerItem(label = if (isEnglish) "Import" else "Importar", icon = Icons.Default.Upload, contentColor = contentColor)
+        DrawerItem(label = if (isEnglish) "Storage" else "Almacenamiento", icon = Icons.Default.Storage, onClick = onStorageClick)
         Spacer(modifier = Modifier.height(16.dp))
-        DrawerItem(label = if (isEnglish) "Export" else "Exportar", icon = Icons.Default.Download, contentColor = contentColor)
+        DrawerItem(label = if (isEnglish) "Import" else "Importar", icon = Icons.Default.Upload, onClick = onImportClick)
         Spacer(modifier = Modifier.height(16.dp))
-        DrawerItem(label = if (isEnglish) "Help" else "Ayuda", icon = Icons.AutoMirrored.Filled.Help, contentColor = contentColor)
+        DrawerItem(label = if (isEnglish) "Export" else "Exportar", icon = Icons.Default.Download, onClick = onExportClick)
+        Spacer(modifier = Modifier.height(16.dp))
+        DrawerItem(label = if (isEnglish) "Help" else "Ayuda", icon = Icons.AutoMirrored.Filled.Help)
         
         Spacer(modifier = Modifier.weight(1f))
         
@@ -367,7 +453,7 @@ fun DrawerContent(isDarkMode: Boolean, isEnglish: Boolean, onLanguageToggle: () 
         ) {
             val footerColor = if (isDarkMode) AshGrey else Color.DarkGray
             Text(
-                text = "DemoniDraw v1.0.1", 
+                text = "DemoniDraw v1.0.2",
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold, 
                 color = footerColor
@@ -384,10 +470,14 @@ fun DrawerContent(isDarkMode: Boolean, isEnglish: Boolean, onLanguageToggle: () 
 }
 
 @Composable
-fun DrawerItem(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, contentColor: Color, onClick: () -> Unit = {}) {
+fun DrawerItem(label: String, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit = {}) {
+    val isDark = MaterialTheme.colorScheme.background.luminance() < 0.5f
+    val containerColor = if (isDark) AbyssBlack else Color.White
+    val textColor = if (isDark) SoulWhite else AbyssBlack
+
     Surface(
         onClick = onClick,
-        color = MaterialTheme.colorScheme.surface,
+        color = containerColor, 
         shape = RoundedCornerShape(12.dp),
         modifier = Modifier
             .fillMaxWidth()
@@ -401,7 +491,11 @@ fun DrawerItem(label: String, icon: androidx.compose.ui.graphics.vector.ImageVec
         ) {
             Icon(icon, contentDescription = null, tint = HellRed, modifier = Modifier.size(24.dp))
             Spacer(modifier = Modifier.width(16.dp))
-            Text(label, color = contentColor, style = MaterialTheme.typography.titleMedium)
+            Text(
+                text = label, 
+                color = textColor,
+                style = MaterialTheme.typography.titleMedium
+            )
         }
     }
 }
@@ -498,6 +592,82 @@ fun GestureItem(
 }
 
 @Composable
+fun StorageDialog(onDismiss: () -> Unit, isEnglish: Boolean, viewModel: GestureViewModel) {
+    val context = LocalContext.current
+    val gestures by viewModel.gestures.collectAsState()
+    
+    fun getBackupFiles(): List<File> {
+        val dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+        return dir.listFiles { _, name -> 
+            name.endsWith(".json") && name.startsWith("DemoniDraw_Backup_") 
+        }?.toList() ?: emptyList()
+    }
+
+    var files by remember { mutableStateOf(getBackupFiles()) }
+    val currentGesturesCount = gestures.size
+    val dialogBg = if (MaterialTheme.colorScheme.background.luminance() < 0.5f) Obsidian else Color.White
+    val textColor = if (MaterialTheme.colorScheme.background.luminance() < 0.5f) Color.White else AbyssBlack
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = dialogBg,
+        title = { Text(if (isEnglish) "Storage Management 📦" else "Gestión de Datos 📦", color = textColor, style = MaterialTheme.typography.titleLarge) },
+        text = {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(if (isEnglish) "Internal Cache" else "Caché Interna", color = textColor, fontWeight = FontWeight.Bold)
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if (isEnglish) "Saved gestures: $currentGesturesCount" else "Gestos guardados: $currentGesturesCount",
+                        modifier = Modifier.weight(1f),
+                        color = textColor,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    IconButton(onClick = { 
+                        Toast.makeText(context, if (isEnglish) "Cache feature coming soon!" else "¡Función de caché próximamente!", Toast.LENGTH_SHORT).show()
+                    }) {
+                        Icon(Icons.Default.DeleteForever, "Clear Cache", tint = Color.Red)
+                    }
+                }
+                
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp), color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                
+                Text(if (isEnglish) "Backups (.json)" else "Respaldos en Carpeta (.json)", color = textColor, fontWeight = FontWeight.Bold)
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                if (files.isEmpty()) {
+                    Text(if (isEnglish) "No backups found." else "No se encontraron respaldos.", color = AshGrey)
+                } else {
+                    LazyColumn(modifier = Modifier.heightIn(max = 250.dp)) {
+                        items(files) { file ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Default.Description, null, modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(text = file.name, fontSize = 10.sp, color = textColor, modifier = Modifier.weight(1f), maxLines = 1)
+                                IconButton(onClick = { 
+                                    file.delete()
+                                    files = getBackupFiles() 
+                                }, modifier = Modifier.size(32.dp)) {
+                                    Icon(Icons.Default.Delete, "Delete File", modifier = Modifier.size(18.dp), tint = Color.Red)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) { Text(if (isEnglish) "CLOSE" else "CERRAR", color = HellRed) }
+        }
+    )
+}
+
+@Composable
 fun AddGestureDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boolean) -> Unit, isDarkMode: Boolean) {
     var name by remember { mutableStateOf("") }
     var action by remember { mutableStateOf("") }
@@ -542,14 +712,6 @@ fun AddGestureDialog(onDismiss: () -> Unit, onConfirm: (String, String, Boolean)
                         colors = CheckboxDefaults.colors(checkedColor = HellRed)
                     )
                     Text("¿Es comando ROOT/Shell?", color = textColor)
-                }
-                if (!isShell) {
-                    Text(
-                        "Introduce el nombre del paquete (ej: com.whatsapp)",
-                        color = AshGrey,
-                        fontSize = 12.sp,
-                        modifier = Modifier.padding(start = 8.dp)
-                    )
                 }
             }
         },
