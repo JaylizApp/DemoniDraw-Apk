@@ -371,6 +371,7 @@ fun DemoniButton(text: String, onClick: () -> Unit, isSecondary: Boolean = false
 
     Button(
         onClick = onClick,
+        contentPadding = PaddingValues(horizontal = 4.dp), // Padding interno mínimo
         modifier = Modifier
             .fillMaxWidth()
             .height(52.dp)
@@ -396,10 +397,12 @@ fun DemoniButton(text: String, onClick: () -> Unit, isSecondary: Boolean = false
         Text(
             text = text, 
             style = MaterialTheme.typography.titleMedium.copy(
+                fontSize = 15.sp, // Un pelín más pequeño para que no corte
                 shadow = Shadow(color = Color.Black.copy(alpha = 0.3f), offset = Offset(2f, 2f), blurRadius = 4f)
             ),
             color = Color.White,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            maxLines = 1 // Evita que salte de línea y se corte verticalmente
         )
     }
 }
