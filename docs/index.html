@@ -8,7 +8,7 @@
 
   <meta
     name="description"
-    content="DemoniDraw v1.0.2 - Advanced gesture assistant and root automation engine for Android."
+    content="DemoniDraw v1.0.2 - Touch gesture automation engine for rooted Android devices."
   >
 
   <link rel="stylesheet" href="style.css">
@@ -49,8 +49,9 @@
       </div>
 
       <p>
-        Advanced gesture assistant and automation engine
-        for rooted Android devices.
+        Touch-gesture automation engine for rooted Android devices.
+        Draw custom gestures anywhere on the screen and turn them
+        into programmable actions.
       </p>
 
       <div class="buttons">
@@ -94,14 +95,14 @@
           <img
             id="screen1"
             src="https://github.com/user-attachments/assets/b4b5169a-c6fb-404f-9294-74418d9e534f"
-            alt="DemoniDraw dark interface screenshot">
+            alt="DemoniDraw gesture automation interface">
         </div>
 
         <div class="screenshot-card">
           <img
             id="screen2"
             src="https://github.com/user-attachments/assets/71374956-2f3a-4f65-9632-699d76a3a4ef"
-            alt="DemoniDraw dark interface screenshot">
+            alt="DemoniDraw macro configuration interface">
         </div>
 
       </div>
@@ -129,11 +130,11 @@
 
           <div class="feature-icon">🎨</div>
 
-          <h3>Gesture Assistant</h3>
-          
+          <h3>Visual Triggers</h3>
+
           <p>
-            Interactive gesture control through a floating
-            interface that works over other applications.
+            Draw freehand strokes, letters, shapes and curves
+            anywhere on the screen to trigger programmed actions.
           </p>
 
         </div>
@@ -146,8 +147,8 @@
           <h3>Root Automation</h3>
 
           <p>
-            Execute custom triggers, console commands
-            and system-level automation with root privileges.
+            Execute system-level commands and automation sequences
+            through root access using Magisk or KernelSU.
           </p>
 
         </div>
@@ -157,11 +158,11 @@
 
           <div class="feature-icon">👆</div>
 
-          <h3>Touch Macros</h3>
+          <h3>Touch Injection</h3>
 
           <p>
-            Chain taps, swipes, delays and keyevents
-            to create programmable interaction sequences.
+            Automate taps, swipes and coordinate-based interactions
+            using Android input commands.
           </p>
 
         </div>
@@ -169,13 +170,13 @@
 
         <div class="feature">
 
-          <div class="feature-icon">🔄</div>
+          <div class="feature-icon">🔗</div>
 
-          <h3>Capture Modes</h3>
+          <h3>Macro Chains</h3>
 
           <p>
-            Choose between continuous listening or
-            manual push-to-activate operation.
+            Combine multiple actions into programmable sequences
+            with commands, delays, taps and swipes.
           </p>
 
         </div>
@@ -183,13 +184,13 @@
 
         <div class="feature">
 
-          <div class="feature-icon">🎨</div>
+          <div class="feature-icon">🪟</div>
 
-          <h3>Demonic Interface</h3>
+          <h3>Floating Overlay</h3>
 
           <p>
-            Dark and light themes with dynamic visual
-            feedback and configuration tools.
+            A lightweight floating service works above other
+            applications and games without replacing the active app.
           </p>
 
         </div>
@@ -197,13 +198,13 @@
 
         <div class="feature">
 
-          <div class="feature-icon">📦</div>
+          <div class="feature-icon">🚀</div>
 
-          <h3>Import / Export</h3>
+          <h3>Low-Latency Engine</h3>
 
           <p>
-            Manage command and macro configurations
-            through local files.
+            Lightweight gesture recognition designed for fast
+            response while keeping CPU and battery usage low.
           </p>
 
         </div>
@@ -230,21 +231,41 @@
       <div class="requirements-box">
 
         <div class="requirement">
+
           <div class="requirement-icon">🔓</div>
+
           <strong>Root Access</strong>
-          <p>Magisk or KernelSU</p>
+
+          <p>
+            Magisk or KernelSU
+          </p>
+
         </div>
 
-        <div class="requirement">
-          <div class="requirement-icon">♿</div>
-          <strong>Accessibility</strong>
-          <p>Required for automation features</p>
-        </div>
 
         <div class="requirement">
+
           <div class="requirement-icon">🪟</div>
+
           <strong>Overlay Permission</strong>
-          <p>Required for the floating interface</p>
+
+          <p>
+            Required for the floating gesture interface
+          </p>
+
+        </div>
+
+
+        <div class="requirement">
+
+          <div class="requirement-icon">⚙️</div>
+
+          <strong>Android</strong>
+
+          <p>
+            Android device with root and system input support
+          </p>
+
         </div>
 
       </div>
@@ -271,7 +292,11 @@
       </div>
 
       <p>
-        Built for Android automation and experimentation.
+        Draw it. Trigger it. Automate it.
+      </p>
+
+      <p>
+        Built for rooted Android automation and experimentation.
       </p>
 
       <p>
@@ -304,12 +329,13 @@
       ],
 
       light: [
-        "https://github.com/user-attachments/assets/50d77c21-14aa-46a1-a0ba-29e6257bfc65", 
+        "https://github.com/user-attachments/assets/50d77c21-14aa-46a1-a0ba-29e6257bfc65",
         "https://github.com/user-attachments/assets/13df39c3-00c4-46cc-92ee-837722467fd2"
       ]
 
     };
-    
+
+
     let lightMode = false;
 
 
