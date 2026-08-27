@@ -37,9 +37,8 @@ DemoniDraw is a powerful touch-gesture automation engine for rooted Android devi
 
 ---
 
-## 📄 License
+## 📄 License and Copyright
 
-Copyright © 2026. All rights reserved.
-Advanced gesture automation tool protected under private intellectual property rights.
+Copyright © 2026. All rights reserved. The source code of this application is the private property of the developer. Unauthorized reproduction, distribution, or modification of this software is prohibited.
 
-
+Developed with 🧡 by an independent developer.
