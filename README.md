@@ -1,8 +1,11 @@
-# 😈 DemoniDraw (v1.0.2 - Demonic Edition)   ![Android](https://img.shields.io/badge/Android-181717?style=flat&logo=android&logoColor=yellow) ![Kotlin](https://img.shields.io/badge/kotlin-181717?style=flat&logo=kotlin&logoColor=yellow) 
+# 😈 DemoniDraw (v1.0.3 - Demonic Edition) ![Android](https://img.shields.io/badge/Android-181717?style=flat&logo=android&logoColor=FF8B3D) ![Kotlin](https://img.shields.io/badge/kotlin-181717?style=flat&logo=kotlin&logoColor=FF8B3D) 
 
-**DemoniDraw** is a powerful touch-gesture automation engine for rooted Android devices. Using an invisible, low-latency floating service, the app allows users to draw freehand strokes anywhere on the screen ("Visual Triggers") to instantly execute complex macros, console scripts, process controls, and low-level touch event injections.
+**😈 DemoniDraw** Apk es un potente motor de automatización de gestos táctiles para dispositivos Android rooteados. Utilizando un servicio flotante invisible y de baja latencia, la aplicación permite a los usuarios dibujar trazos a mano alzada en cualquier parte de la pantalla ("Disparadores visuales") para ejecutar instantáneamente macros complejas, scripts de consola, controles de procesos e inyecciones de eventos táctiles de bajo nivel. 
 
-**https://github.com/Jaypsmall/DemoniDraw/releases/download/root/DemoniDraw_v1.0.2.apk**
+<a href="https://github.com/Jaypsmall/DemoniDraw/releases/download/root/DemoniDraw_v1.0.3.apk">
+ <img src="https://img.shields.io/badge/DOWNLOAD_DEMONIDRAW_v1.0.3_APK-181717?style=flat&logo=android&logoColor=FF8B3D" alt="Download Release">
+</a>
+
 
 ---
 
